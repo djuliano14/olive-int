@@ -1,34 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect } from 'react'
 import './App.css'
 import './index.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const testData = [
+    { breed: "Labrador Retriever", image: "https://picsum.photos/536/354" },
+    { breed: "German Shepherd", image: "https://picsum.photos/536/354" },
+    { breed: "Golden Retriever", image: "https://picsum.photos/536/354" },
+    { breed: "Bulldog", image: "https://picsum.photos/536/354" },
+    { breed: "Poodle", image: "https://picsum.photos/536/354" },
+  ];
+
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(`http://localhost:3000/api/dogs?page=${page}`);
+      const data = await response.json();
+      console.log(data);
+    }
+    fetchData();
+  }, [page]);
 
   return (
     <>
-      <div className='bg-gray-100 h-screen flex flex-col items-center justify-center'>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div>
+        {testData.map((dog, index) => (
+          <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+            <img
+              src={dog.image}
+              alt={dog.breed}
+              style={{ width: '300px', height: '300px', objectFit: 'cover', marginRight: '20px' }}
+            />
+            <span style={{ fontSize: '20px', fontWeight: 'bold' }}>{dog.breed}</span>
+          </div>
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
