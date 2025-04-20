@@ -13,16 +13,26 @@ function App() {
       setIsLoading(true);
       try {
         const response = await fetch(`http://localhost:8000/api/data?page=${page}`);
+        
+        if (!response.ok) {
+          if (response.status === 500) {
+            throw new Error("Server error. Please try again later.");
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+          }
+        }
+        
         const res = await response.json();
         console.log(res);
-        if (res && res.status === "success" && res.data.length > 0) {
-          if (res.data.length > 15) {
-            res.data = res.data.slice(0, 15);
-          } else {
-            setData(res.data);
-          }
+        
+        if (res && res.status === "success" && res.data && res.data.length > 0) {
+          setData(res.data);
         } else {
           setData([]);
+          if (res.status === "error") {
+            alert(res.message || "Unknown error occurred");
+          }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
