@@ -3,18 +3,10 @@ import './App.css'
 import './index.css'
 
 function App() {
-
-  const testData = [
-    { breed: "Labrador Retriever", image: "https://picsum.photos/536/354" },
-    { breed: "German Shepherd", image: "https://picsum.photos/536/354" },
-    { breed: "Golden Retriever", image: "https://picsum.photos/536/354" },
-    { breed: "Bulldog", image: "https://picsum.photos/536/354" },
-    { breed: "Poodle", image: "https://picsum.photos/536/354" },
-  ];
-
   const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [inputPage, setInputPage] = useState('1');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,8 +15,14 @@ function App() {
         const response = await fetch(`http://localhost:8000/api/data?page=${page}`);
         const res = await response.json();
         console.log(res);
-        if(res && res.status === "success" && res.data.length > 0) {
-          setData(res.data);
+        if (res && res.status === "success" && res.data.length > 0) {
+          if (res.data.length > 15) {
+            res.data = res.data.slice(0, 15);
+          } else {
+            setData(res.data);
+          }
+        } else {
+          setData([]);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -39,6 +37,7 @@ function App() {
       }
     };
     fetchData();
+    setInputPage(page.toString());
   }, [page]);
 
   useEffect(() => {
@@ -53,15 +52,30 @@ function App() {
     setPage(prev => prev + 1);
   };
 
-  const handlePageClick = (pageNumber: number) => {
-    setPage(pageNumber);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputPage(e.target.value);
+  };
+
+  const handleGoToPage = () => {
+    const newPage = parseInt(inputPage);
+    if (!isNaN(newPage) && newPage >= 1) {
+      setPage(newPage);
+    } else {
+      setInputPage(page.toString());
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleGoToPage();
+    }
   };
 
   return (
     <>
       <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
         <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Dogs</h1>
-        
+
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '20px' }}>Loading...</div>
         ) : (
@@ -80,13 +94,13 @@ function App() {
             ) : (
               <div style={{ textAlign: 'center', padding: '20px' }}>No dogs found</div>
             )}
-            
+
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '30px 0' }}>
-              <button 
-                onClick={handlePrevious} 
+              <button
+                onClick={handlePrevious}
                 disabled={page <= 1}
-                style={{ 
-                  padding: '8px 15px', 
+                style={{
+                  padding: '8px 15px',
                   marginRight: '10px',
                   background: page <= 1 ? '#e0e0e0' : '#4a90e2',
                   color: page <= 1 ? '#888' : 'white',
@@ -97,36 +111,30 @@ function App() {
               >
                 Previous
               </button>
-              
-              <div style={{ display: 'flex' }}>
-                {[...Array(10)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handlePageClick(i + 1)}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      margin: '0 5px',
-                      border: 'none',
-                      borderRadius: '50%',
-                      background: page === i + 1 ? '#4a90e2' : '#f0f0f0',
-                      color: page === i + 1 ? 'white' : 'black',
-                      fontWeight: page === i + 1 ? 'bold' : 'normal',
-                      cursor: 'pointer',
-                      alignItems: 'center',
-                      display: 'flex',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ marginRight: '5px' }}>Page:</span>
+                <input
+                  type="text"
+                  value={inputPage}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                  onBlur={handleGoToPage}
+                  style={{
+                    width: '50px',
+                    height: '32px',
+                    textAlign: 'center',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    marginRight: '5px'
+                  }}
+                />
               </div>
-              
-              <button 
+
+              <button
                 onClick={handleNext}
-                style={{ 
-                  padding: '8px 15px', 
+                style={{
+                  padding: '8px 15px',
                   marginLeft: '10px',
                   background: '#4a90e2',
                   color: 'white',
